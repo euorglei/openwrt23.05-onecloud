@@ -1,29 +1,35 @@
-#!/bin/sh
-# SPDX-License-Identifier: GPL-2.0-only
-#
-# Copyright (C) 2017 OpenWrt.org
+#!/bin/bash
 
-set -x
-[ $# -eq 5 ] || {
-    echo "SYNTAX: $0 <file> <bootfs image> <rootfs image> <bootfs size> <rootfs size>"
+# 检查参数数量
+if [ "$#" -ne 5 ]; then
+    echo "Usage: $0 <output_image> <boot_partition_image> <rootfs_image>"
     exit 1
-}
+fi
 
-OUTPUT="$1"
-BOOTFS="$2"
-ROOTFS="$3"
-BOOTFSSIZE="$4"
-ROOTFSSIZE="$5"
+OUTPUT_IMAGE=$1
+BOOT_PARTITION_IMAGE=$2
+ROOTFS_IMAGE=$3
 
-head=4
-sect=2048
 
-set $(ptgen -o $OUTPUT -h $head -s $sect -l 4096 -t c -p ${BOOTFSSIZE}M -t 83 -p ${ROOTFSSIZE}M)
+# 下载并准备工具
+ver="v0.3.1"
+curl -L -o ./AmlImg https://github.com/hzyitc/AmlImg/releases/download/$ver/AmlImg_${ver}_linux_amd64
+chmod +x ./AmlImg
+curl -L -o ./uboot.img https://github.com/lxiaya/u-boot-onecloud/releases/download/build-20230901-0443/eMMC.burn.img
+./AmlImg unpack ./uboot.img burn/
 
-BOOTOFFSET="$(($1 / 512))"
-BOOTSIZE="$(($2 / 512))"
-ROOTFSOFFSET="$(($3 / 512))"
-ROOTFSSIZE="$(($4 / 512))"
+# 转换镜像格式
+img2simg ${BOOT_PARTITION_IMAGE} burn/boot.simg
+img2simg ${ROOTFS_IMAGE} burn/rootfs.simg
 
-dd bs=512 if="$BOOTFS" of="$OUTPUT" seek="$BOOTOFFSET" conv=notrunc
-dd bs=512 if="$ROOTFS" of="$OUTPUT" seek="$ROOTFSOFFSET" conv=notrunc
+# 创建命令文件
+cat <<EOF >>burn/commands.txt
+PARTITION:boot:sparse:boot.simg
+PARTITION:rootfs:sparse:rootfs.simg
+EOF
+
+# 打包生成最终镜像
+./AmlImg pack ${OUTPUT_IMAGE} burn/
+
+# 清理临时文件夹
+rm -rf burn
