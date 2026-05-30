@@ -22,5 +22,4 @@
 #echo 'src-git clash https://github.com/lxiaya/onecloud-package' >>feeds.conf.default
 #echo 'src-git dns https://github.com/sbwml/luci-app-mosdns' >>feeds.conf.default
 #echo 'src-git helloworld https://github.com/lxiaya/helloworld' >>feeds.conf.default
-echo 'net.netfilter.nf_conntrack_max=65536' >>package/kernel/linux/files/sysctl-nf-conntrack.conf
-echo 'net.core.default_qdisc=fq' >>package/kernel/linux/files/sysctl-tcp-bbr.conf
+echo 'net.netfilter.nf_conntrack_max=65535' >>package/kernel/linux/files/sysctl-nf-conntrack.conf

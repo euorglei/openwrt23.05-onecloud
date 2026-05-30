@@ -5,7 +5,8 @@
   - 密码:空
 
 - 系统内核
-  - [✔] TCP 开启BBR
+  - [✔] TCP 关闭BBR
+  - 原因:开启BBR上传速度异常
 
 - 刷机工具
   - [下载](https://xd1314.lanzoul.com/iXHbz17bqjhc)
